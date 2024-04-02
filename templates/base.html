@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    
+    {%block 'head'%}{% endblock %}
+    <title>{%block 'titulo' %}{% endblock %}</title>
+    
+  </head>
+  <body>
+    
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      {% if usuario_logado %}
+      <a class="navbar-brand" href="{% url 'home' %}">Biblioteca Universitaria Compartilhada</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'home' %}">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-toggle="modal" data-target="#exampleModal">Opções</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'livros_devolver' %}">Livros a Devolver</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'sair' %}">Logout</a>
+          </li>
+        </ul>
+      </div>
+      {% endif %}
+    </nav>
+    
+    {%block 'conteudo' %}{% endblock %}
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% if usuario_logado %}
+      <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Cadastrar / Emprestar / Devolver</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+                <button style="margin-left: 10px;" onclick="mostrar_form(1)" class="btn btn-info">Categoria</button>
+                <button style="margin-left: 10px;" onclick="mostrar_form(2)" class="btn btn-warning">Livro</button>
+                <button style="margin-left: 10px;" onclick="mostrar_form(3)" class="btn btn-primary">Emprestimo</button>
+                <button style="margin-left: 10px;" onclick="mostrar_form(4)" class="btn btn-secondary">Devolução</button>
+                <br>
+                <hr>
+                <div style="display: none;" id="livro">
+                  <form action="{% url 'cadastrar_livro' %}" method="POST" enctype='multipart/form-data'>
+                    {% csrf_token %}
+                    <table>
+                    {{form.as_table}}
+                    </table>
+
+                    <input type="submit" class="btn btn-success" value="Cadastrar">
+                  </form>
+                </div>
+
+                <div style="display: none;" id="categoria">
+                  <form action="{% url 'cadastrar_categoria' %}" method="POST">{% csrf_token %}
+                    
+                    <table>
+                      {{form_categoria.as_table}}
+                    </table>
+                    <input class="btn btn-success" type="submit" value="Enviar">
+                  </form>
+                </div>
+
+                <div style="display: none;" id="emprestimo">
+                  {% for usuario in usuarios %}
+                    {{usuarios.nome}}
+                  {% endfor %}
+                  <form action="{% url 'cadastrar_emprestimo' %}" method="POST">{% csrf_token %}
+                    <select class="form-control" name="nome_emprestado" >
+
+                      {% for usuario in usuarios %}
+                      <option value="{{usuario.id}}">{{usuario}}</option>
+                      {% endfor %}
+
+                    </select>
+                    <br>
+                    <select class="form-control" name="livro_emprestado" >
+
+                      {% for livro in livros_emprestar %}
+                      <option value="{{livro.id}}">{{livro.nome}}</option>
+                      {% endfor %}
+
+                    </select>
+                    <br>
+
+                    <input type="submit" value="Emprestar" class="btn btn-success">
+
+                  </form>
+
+                </div>
+
+                <div style="display: none;" id="devolucao">
+                  <form action="{% url 'devolver_livro'%}" method="POST">{% csrf_token %}
+
+                    <select class="form-control" name="id_livro_devolver">
+                      {% for livro in livros_emprestados %}
+                      <option value="{{livro.id}}">{{livro.nome}}</option>
+                      {% endfor %}
+
+                    </select>
+                    <br>
+
+                    <input type="submit"class="btn btn-warning" value="Devolver">
+                  </form>
+                </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    {% endif %}
+      
+      <script>
+        function mostrar_form(v1){
+          categoria = document.getElementById('categoria')
+          livro = document.getElementById('livro')
+          emprestimo = document.getElementById('emprestimo')
+          devolucao = document.getElementById('devolucao')
+
+          if(v1 == 1){
+            categoria.style.display = 'block';
+            livro.style.display = 'none';
+            emprestimo.style.display = 'none';
+            devolucao.style.display = 'none';
+          }
+          else if(v1 == 2){
+            livro.style.display = 'block';
+            emprestimo.style.display = 'none';
+            categoria.style.display = 'none';
+            devolucao.style.display = 'none';
+          }
+          else if(v1 == 3){
+            emprestimo.style.display = 'block';
+            livro.style.display = 'none';
+            categoria.style.display = 'none';
+            devolucao.style.display = 'none';
+          }
+          else if (v1 == 4){
+            emprestimo.style.display = 'none';
+            livro.style.display = 'none';
+            categoria.style.display = 'none';
+            devolucao.style.display = 'block';
+          }
+        }
+
+      </script>
+  </body>
+
+</html>
